@@ -78,7 +78,7 @@ pub extern "C" fn ask_lin_mod(mut lm : &mut MultiLayerPerceptron,test_data : Vec
         sum += lm.poids[indexPoids + lm.n_entree-1];
         let res = 1.0/(1.0 + libm::exp(-sum));
         lm.sorties[indexS] = res;
-		println!('{}',res);
+		println!("{}",res);
     }
     lm
 }
