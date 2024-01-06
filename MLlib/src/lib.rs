@@ -20,7 +20,8 @@ static mut mlp : MultiLayerPerceptron = MultiLayerPerceptron {
 	n_poids : 0,
 };
 	
-pub fn main(nb_entree : usize, nb_hidden : usize, nb_sortie : usize) -> &'static MultiLayerPerceptron {
+#[no_mangle]
+pub extern "C" fn main(nb_entree : usize, nb_hidden : usize, nb_sortie : usize) -> &'static MultiLayerPerceptron {
     println!("start");
 	unsafe {
 		mlp = init_lin_mod(nb_entree, nb_hidden, nb_sortie);
@@ -99,7 +100,7 @@ fn mlpLearning(mut lm : &mut MultiLayerPerceptron,learn_data : Vec<f64>) {
 		let res = &lm.sorties;
         let mut isOk = true;
         for nbSortie in 0..lm.n_sortie {
-            if (res[nb_sortie] - res_data[nbSortie]).abs() > 1e-6 {
+            if (res[nbSortie] - res_data[nbSortie]).abs() > 1e-6 {
                 isOk = false;
             }
         }
