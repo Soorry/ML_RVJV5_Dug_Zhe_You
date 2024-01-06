@@ -10,9 +10,22 @@ struct MultiLayerPerceptron {
     n_poids : usize,
 }
 
-fn main() {
+static mut mlp : MultiLayerPerceptron = MultiLayerPerceptron {
+	n_entree : 0,
+	n_sortie : 0,
+	n_hidden : 0,
+	poids : Vec::new(),
+	entrees : Vec::new(),
+	sorties : Vec::new(),
+	n_poids : 0,
+};
+	
+pub fn main(nb_entree : usize, nb_hidden : usize, nb_sortie : usize) -> &'static MultiLayerPerceptron {
     println!("start");
-    let mut lm = init_lin_mod(2, 1, 1);
+	unsafe {
+		mlp = init_lin_mod(nb_entree, nb_hidden, nb_sortie);
+		&mlp
+	}
 }
 
 fn init_lin_mod(nb_entree : usize, nb_hidden : usize, nb_sortie : usize) -> MultiLayerPerceptron {
