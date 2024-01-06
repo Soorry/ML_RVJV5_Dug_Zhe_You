@@ -33,9 +33,9 @@ fn init_lin_mod(nb_entree : usize, nb_hidden : usize, nb_sortie : usize) -> Mult
         n_entree : nb_entree+1,
         n_sortie : nb_sortie,
         n_hidden : nb_hidden,
-        poids : Vec::new(),
-        entrees : Vec::new(),
-        sorties : Vec::new(),
+        poids : Vec::with_capacity((nb_entree +1) * (nb_hidden + 1) * (nb_entree +1)),
+        entrees : Vec::with_capacity((nb_entree +1) * (nb_hidden + 1)),
+        sorties : Vec::with_capacity(nb_sortie),
         n_poids : (nb_entree+1)*nb_sortie+nb_hidden*(nb_entree+1)*(nb_entree+1),
     };
 
@@ -99,19 +99,19 @@ fn mlpLearning(mut lm : &mut MultiLayerPerceptron,learn_data : Vec<f64>) {
 		let res = &lm.sorties;
         let mut isOk = true;
         for nbSortie in 0..lm.n_sortie {
-            if(res[nbSortie] != res_data[nbSortie]) {
+            if (res[nb_sortie] - res_data[nbSortie]).abs() > 1e-6 {
                 isOk = false;
-			}
+            }
         }
         if !isOk {
-            let mut deltas : Vec<f64> = Vec::new();
+            let mut deltas: Vec<f64> = Vec::with_capacity(lm.n_entree * (lm.n_hidden + 1) + lm.n_sortie);
 			//on calcule les deltas de la derniere couche
             for indexS in 0..lm.n_sortie { //Index de la sortie
                 let res = (1.0 - lm.sorties[indexS]*lm.sorties[indexS]) * (lm.sorties[indexS] - res_data[lm.n_sortie]);
                 deltas[lm.n_entree * (lm.n_hidden + 1) + indexS] = res;
             }
 			//On calcul le reste des deltas a partir de l avant derniere couche
-            for indexH in lm.n_hidden..0 { //Index des couches
+            for indexH in (0..lm.n_hidden).rev() { //Index des couches
                 for indexE in 0..lm.n_entree { //Index de la 2eme colonne de perceptron 
                     let mut sum : f64 = 0.0;
                     let indexDelta = indexH * lm.n_entree;
@@ -125,16 +125,16 @@ fn mlpLearning(mut lm : &mut MultiLayerPerceptron,learn_data : Vec<f64>) {
                 }
             }
 			//On met a jour les poids
-			for indexH in 0..lm.n_hidden { //Index des couches
-				for indexI in 0..lm.n_entree {
-					for indexJ in 0..lm.n_entree { 
-						let indexPoids = indexH * lm.n_entree + indexI * lm.n_entree + indexJ;
-						let indexEntree = indexH * lm.n_entree + indexI;
-						let indexDelta = indexH * lm.n_entree + indexJ;
-						lm.poids[indexPoids] = lm.poids[indexPoids] - alpha*lm.entrees[indexEntree]*deltas[indexDelta];
-					}
-				}
-			}
+			for indexH in 0..lm.n_hidden {
+                for indexI in 0..lm.n_entree {
+                    for indexJ in 0..lm.n_entree {
+                        let indexPoids = indexH * lm.n_entree * lm.n_entree + indexI * lm.n_entree + indexJ;
+                        let indexEntree = indexH * lm.n_entree + indexI;
+                        let indexDelta = indexH * lm.n_entree + indexJ;
+                        lm.poids[indexPoids] = lm.poids[indexPoids] - alpha * lm.entrees[indexEntree] * deltas[indexDelta];
+                    }
+                }
+            }
         }
     }
 }
