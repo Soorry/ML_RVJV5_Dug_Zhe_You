@@ -47,6 +47,7 @@ pub extern "C" fn init_lin_mod(nb_entree : usize, nb_hidden : usize, nb_sortie :
     lm
 }
 
+#[no_mangle]
 pub extern "C" fn ask_lin_mod(mut lm : &mut MultiLayerPerceptron,test_data : Vec<f64>) -> &mut MultiLayerPerceptron {
     for indexE in 0..lm.n_entree-1 {
         lm.entrees[indexE] = test_data[indexE];
