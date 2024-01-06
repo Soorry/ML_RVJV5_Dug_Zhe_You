@@ -29,7 +29,7 @@ pub extern "C" fn main(nb_entree : usize, nb_hidden : usize, nb_sortie : usize) 
 	}
 }
 
-fn init_lin_mod(nb_entree : usize, nb_hidden : usize, nb_sortie : usize) -> MultiLayerPerceptron {
+pub extern "C" fn init_lin_mod(nb_entree : usize, nb_hidden : usize, nb_sortie : usize) -> MultiLayerPerceptron {
     let mut lm = MultiLayerPerceptron {
         n_entree : nb_entree+1,
         n_sortie : nb_sortie,
@@ -47,7 +47,7 @@ fn init_lin_mod(nb_entree : usize, nb_hidden : usize, nb_sortie : usize) -> Mult
     lm
 }
 
-fn ask_lin_mod(mut lm : &mut MultiLayerPerceptron,test_data : Vec<f64>) -> &mut MultiLayerPerceptron {
+pub extern "C" fn ask_lin_mod(mut lm : &mut MultiLayerPerceptron,test_data : Vec<f64>) -> &mut MultiLayerPerceptron {
     for indexE in 0..lm.n_entree-1 {
         lm.entrees[indexE] = test_data[indexE];
     }
@@ -77,11 +77,12 @@ fn ask_lin_mod(mut lm : &mut MultiLayerPerceptron,test_data : Vec<f64>) -> &mut 
         sum += lm.poids[indexPoids + lm.n_entree-1];
         let res = 1.0/(1.0 + libm::exp(-sum));
         lm.sorties[indexS] = res;
+		println!('{}',res);
     }
     lm
 }
 
-fn mlpLearning(mut lm : &mut MultiLayerPerceptron,learn_data : Vec<f64>) {
+pub extern "C" fn mlpLearning(mut lm : &mut MultiLayerPerceptron,learn_data : Vec<f64>) {
 	let alpha = 0.01;
     let blockSize = lm.n_entree + lm.n_sortie; 
     let nbBlocks = blockSize / learn_data.len();
