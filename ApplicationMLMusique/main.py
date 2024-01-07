@@ -28,12 +28,9 @@ mlp_ptr = create_mlp(2, 2, 1)
 # Accéder à la structure MultiLayerPerceptron en Python
 mlp = mlp_ptr.contents
 
-# Créer un tableau de f64 en Python
+# Exemple du xor sous la forme (x0, x1, y)
 data = [1.0, 0.0, 1.0, 0.0, 1.0, 1.0, 0.0, 0.0, -1.0, 1.0, 1.0, -1.0]
 float_array = np.array(data, dtype=np.float64)
-
-# Appeler la fonction Rust avec les paramètres convertis
-# my_dll.ask_lin_mod(mlp_ptr, float_array.ctypes.data_as(ctypes.POINTER(ctypes.c_double)), len(float_array))
 
 my_dll.mlpLearning(mlp_ptr, float_array.ctypes.data_as(ctypes.POINTER(ctypes.c_double)), len(float_array))
 # Libérer la mémoire lorsque vous avez fini d'utiliser le MultiLayerPerceptron
