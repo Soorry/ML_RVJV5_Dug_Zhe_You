@@ -8,6 +8,7 @@ version = "0.1.0"
 dependencies = [
  "libm",
  "rand",
+ "slice",
 ]
 
 [[package]]
@@ -74,6 +75,12 @@ checksum = "ec0be4795e2f6a28069bec0b5ff3e2ac9bafc99e6a9a7dc3547996c5c816922c"
 dependencies = [
  "getrandom",
 ]
+
+[[package]]
+name = "slice"
+version = "0.0.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "a48d174c11a0755b515b7e09f63f10dec39f2d6b9911a8cefacbcc77c664f937"
 
 [[package]]
 name = "wasi"
