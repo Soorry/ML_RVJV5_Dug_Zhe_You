@@ -1,8 +1,7 @@
 import array
 import ctypes
-
-# Définir la structure équivalente en Python
 import numpy as np
+from PIL import Image
 
 class MultiLayerPerceptron(ctypes.Structure):
     _fields_ = [
@@ -15,17 +14,23 @@ class MultiLayerPerceptron(ctypes.Structure):
         ("sorties", ctypes.POINTER(ctypes.c_double)),
     ]
 
-# Charger la DLL Rust
-my_dll = ctypes.CDLL(r'C:\Users\user\Desktop\ML_RVJV5_Dug_Zhe_You\MLlib\target\debug\MLlib.dll')  # Remplacez le chemin par votre DLL
+# Chargement d'une image
+image_path = r'C:\Users\HP\Desktop\Projets ESGI\ML_RVJV5_Dug_Zhe_You\image.png'
+image = Image.open(image_path)
 
-# Appeler la fonction create_mlp pour initialiser le MultiLayerPerceptron
+largeur, hauteur = image.size
+pixels = list(image.getdata())
+print(pixels[:10])
+image.close()
+
+# Chargement de la dll
+my_dll = ctypes.CDLL(r'C:\Users\HP\Desktop\Projets ESGI\ML_RVJV5_Dug_Zhe_You\MLlib\target\debug\MLlib.dll')
 create_mlp = my_dll.create_mlp
 create_mlp.argtypes = [ctypes.c_size_t, ctypes.c_size_t, ctypes.c_size_t]
 create_mlp.restype = ctypes.POINTER(MultiLayerPerceptron)
 
 mlp_ptr = create_mlp(2, 2, 1)
 
-# Accéder à la structure MultiLayerPerceptron en Python
 mlp = mlp_ptr.contents
 
 # Exemple du xor sous la forme (x0, x1, y)
@@ -33,7 +38,6 @@ data = [1.0, 0.0, 1.0, 0.0, 1.0, 1.0, 0.0, 0.0, -1.0, 1.0, 1.0, -1.0]
 float_array = np.array(data, dtype=np.float64)
 
 my_dll.mlpLearning(mlp_ptr, float_array.ctypes.data_as(ctypes.POINTER(ctypes.c_double)), len(float_array))
-# Libérer la mémoire lorsque vous avez fini d'utiliser le MultiLayerPerceptron
 free_mlp = my_dll.free_mlp
 free_mlp.argtypes = [ctypes.POINTER(MultiLayerPerceptron)]
 free_mlp(mlp_ptr)

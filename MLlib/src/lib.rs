@@ -194,7 +194,7 @@ pub extern "C" fn mlpLearning_internal<'a>(mut mlp: &'a mut MultiLayerPerceptron
     let nbBlocks = learn_data.len() / blockSize;
 	
     let mut rng = rand::thread_rng();
-    for learningTime in 0..10 {
+    for learningTime in 0..1000 {
 		//On choisis un exemple au hasard
         let randBlockIndex = rng.gen_range(0..nbBlocks-1) * blockSize;
 		//On sépare les output et les input
@@ -203,6 +203,7 @@ pub extern "C" fn mlpLearning_internal<'a>(mut mlp: &'a mut MultiLayerPerceptron
 		//On passe l'exemple dans le mlp
         mlp = ask_lin_mod_internal(mlp, test_data);
 		println!("expect : {}",res_data[0]);
+		println!(" ");
 		let res = &mlp.sorties;
         let mut isOk = true;
 		//On check si la sortie est correct
