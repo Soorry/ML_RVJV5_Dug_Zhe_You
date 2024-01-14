@@ -1,4 +1,40 @@
 use rand::Rng;
+use audio_visualizer::waveform::png_file::waveform_static_png_visualize;
+use audio_visualizer::ChannelInterleavement;
+use audio_visualizer::Channels;
+use minimp3::{Decoder as Mp3Decoder, Error as Mp3Error, Frame as Mp3Frame};
+use std::fs::File;
+use std::path::PathBuf;
+
+fn main() {
+    let mut path = PathBuf::new();
+    path.push("test/out");
+    path.push("01.mp3");
+    let mut decoder = Mp3Decoder::new(File::open(path).unwrap());
+
+    let mut lrlr_mp3_samples = vec![];
+    loop {
+        match decoder.next_frame() {
+            Ok(Mp3Frame {
+                data: samples_of_frame,
+                ..
+            }) => {
+                for sample in samples_of_frame {
+                    lrlr_mp3_samples.push(sample);
+                }
+            }
+            Err(Mp3Error::Eof) => break,
+            Err(e) => panic!("{:?}", e),
+        }
+    }
+
+    waveform_static_png_visualize(
+        &lrlr_mp3_samples,
+        Channels::Stereo(ChannelInterleavement::LRLR),
+        "test/out",
+        "sample_1_waveform.png",
+    );
+}
 
 pub struct MultiLayerPerceptron {
     n_entree : usize,
@@ -37,7 +73,8 @@ pub extern "C" fn create_mlp(nb_entree: usize, nb_hidden: usize, nb_sortie: usiz
 	let mlp = Box::new(init_lin_mod_internal(nb_entree, nb_hidden, nb_sortie));
     Box::into_raw(mlp)
 }
-	
+
+	/*
 #[no_mangle]
 pub extern "C" fn main(nb_entree: usize, nb_hidden: usize, nb_sortie: usize) -> *mut MultiLayerPerceptron {
     // Créez une nouvelle instance de MultiLayerPerceptron
@@ -50,7 +87,7 @@ pub extern "C" fn main(nb_entree: usize, nb_hidden: usize, nb_sortie: usize) -> 
     // Retournez le pointeur vers le MultiLayerPerceptron initialisé
     mlp_ptr
 }
-
+*/
 #[no_mangle]
 pub extern "C" fn init_lin_mod(mlp_ptr: *mut *mut MultiLayerPerceptron, nb_entree: usize, nb_hidden: usize, nb_sortie: usize) {
     unsafe {
