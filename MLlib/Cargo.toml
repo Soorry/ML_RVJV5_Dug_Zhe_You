@@ -7,9 +7,6 @@ edition = "2021"
 
 [dependencies]
 rand = "0.8.5"
-libm = "0.2.8"
 slice = "0.0.4"
-audio-visualizer = "0.4.0"
-minimp3 = "0.5.1"
 [lib]
 crate-type = ["cdylib"]

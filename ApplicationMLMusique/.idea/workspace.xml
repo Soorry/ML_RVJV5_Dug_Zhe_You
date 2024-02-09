@@ -9,7 +9,18 @@
     </configurations>
   </component>
   <component name="ChangeListManager">
+<<<<<<< Updated upstream
     <list default="true" id="e5144c2e-d059-4b49-87d4-fa3a4f1750ae" name="Changes" comment="" />
+=======
+    <list default="true" id="e5144c2e-d059-4b49-87d4-fa3a4f1750ae" name="Changes" comment="">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../MLlib/src/lib.rs" beforeDir="false" afterPath="$PROJECT_DIR$/../MLlib/src/lib.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../MLlib/target/debug/.fingerprint/MLlib-4197b33573acacba/output-lib-MLlib" beforeDir="false" afterPath="$PROJECT_DIR$/../MLlib/target/debug/.fingerprint/MLlib-4197b33573acacba/output-lib-MLlib" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../MLlib/target/debug/deps/MLlib.dll" beforeDir="false" afterPath="$PROJECT_DIR$/../MLlib/target/debug/deps/MLlib.dll" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../MLlib/target/debug/deps/MLlib.dll.exp" beforeDir="false" afterPath="$PROJECT_DIR$/../MLlib/target/debug/deps/MLlib.dll.exp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../MLlib/target/debug/deps/MLlib.pdb" beforeDir="false" afterPath="$PROJECT_DIR$/../MLlib/target/debug/deps/MLlib.pdb" afterDir="false" />
+    </list>
+>>>>>>> Stashed changes
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
