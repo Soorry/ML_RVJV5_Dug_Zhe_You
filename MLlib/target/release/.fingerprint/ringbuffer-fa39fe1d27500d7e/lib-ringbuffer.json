@@ -1,0 +1,1 @@
+{"rustc":7026534857803070663,"features":"[\"alloc\", \"default\"]","target":16975241815680839715,"profile":3567329628440936607,"path":18253268567313018206,"deps":[],"local":[{"CheckDepInfo":{"dep_info":"release\\.fingerprint\\ringbuffer-fa39fe1d27500d7e\\dep-lib-ringbuffer"}}],"rustflags":[],"metadata":11890826730500072596,"config":2202906307356721367,"compile_kind":0}

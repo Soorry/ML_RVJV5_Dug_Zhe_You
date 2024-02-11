@@ -8,5 +8,7 @@ edition = "2021"
 [dependencies]
 rand = "0.8.5"
 slice = "0.0.4"
+nalgebra = "0.27.0"
+
 [lib]
 crate-type = ["cdylib"]

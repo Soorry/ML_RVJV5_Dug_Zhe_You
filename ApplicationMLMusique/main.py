@@ -1,26 +1,26 @@
 import array
 import ctypes
+import random
+
 import numpy as np
 from PIL import Image
 import matplotlib.pyplot as plt
 
-# Chargement d'une image
-# image_path = r'C:\Users\HP\Desktop\Projets ESGI\ML_RVJV5_Dug_Zhe_You\image.png'
-# image = Image.open(image_path)
-
-# largeur, hauteur = image.size
-# pixels = list(image.getdata())
-# print(pixels[:10])
-# image.close()
-
-
 # Chargement de la dll
 my_dll = ctypes.CDLL(r'C:\Users\HP\Desktop\Projets ESGI\ML_RVJV5_Dug_Zhe_You\MLlib\target\release\MLlib.dll')
 
-# 0 : Modèle Linéaire, 1 : MLP
-modele_utilise = 0
+#Modèle disponible
+# 0 : Modèle Linéaire, 1 : MLP, 2 : RBF
 
-exemple_utilise = 3
+#Exemples disponibles Modèle Linéaire :
+# 0 : Cas simple, 1 : Cas multiple, 2 : Régression simple
+
+#Exemples disponibles MLP :
+# 0 : XOR, 1 : Cross, 2 : Linéaire multiple, 3: Multicross
+
+modele_utilise = 3
+
+exemple_utilise = 2
 
 if modele_utilise == 0:
     # config lm
@@ -29,6 +29,7 @@ if modele_utilise == 0:
     my_dll.predict_lm.restype = ctypes.c_double
 
     if exemple_utilise == 0:
+        #Cas linéaire simple
         model = my_dll.create_lm(2)
 
         X = np.array([
@@ -51,6 +52,7 @@ if modele_utilise == 0:
                                        dtype=np.float64)
         plt.plot(range(0, nb_errors), array_from_ptr)
         plt.show()
+
         outputs = []
         for x, y in X:
             data = np.array([x, y], dtype=np.float64)
@@ -84,7 +86,7 @@ if modele_utilise == 0:
     elif exemple_utilise == 1:
         model = my_dll.create_lm(2)
         X = np.concatenate(
-            [np.random.random((100, 2)) * 0.9 + np.array([1, 1]), np.random.random((50, 2)) * 0.9 + np.array([2, 2])])
+            [np.random.random((100, 2)) * 0.9 + np.array([1, 1]), np.random.random((100, 2)) * 0.9 + np.array([2, 2])])
         Y = np.concatenate([np.ones((100, 1)), np.ones((100, 1)) * -1.0])
 
         train_input_data_pointer = X.ctypes.data_as(ctypes.POINTER(ctypes.c_double))
@@ -185,7 +187,8 @@ if modele_utilise == 0:
 
         plt.show()
         plt.clf()
-else:
+
+elif modele_utilise == 1:
     # config mlp
     my_dll.create_mlp.restype = ctypes.POINTER(ctypes.c_void_p)
     my_dll.train_mlp.restype = ctypes.POINTER(ctypes.c_double)
@@ -243,21 +246,28 @@ else:
         plt.clf()
 
     elif exemple_utilise == 1:  # Cross
-        # Creation du modèle
-        model = my_dll.create_mlp(4, 2, 1)
         # Creation du dataset d'entrainement
-        X = np.random.random((500, 2)) * 2.0 - 1.0
+        X = np.array(np.random.random((250, 2)) * 2.0 - 1.0)
         Y = np.array([[1.0] if abs(p[0]) <= 0.3 or abs(p[1]) <= 0.3 else [-1.0] for p in X], dtype=np.float64)
+
         train_input_data_pointer = X.ctypes.data_as(ctypes.POINTER(ctypes.c_double))
         train_output_data_pointer = Y.ctypes.data_as(ctypes.POINTER(ctypes.c_double))
 
         # entrainement du modèle
-        nb_err = 1000
+        nb_err = 100
         alpha = 0.001
         iter = 2500000
+
+        model = my_dll.create_mlp(4, 2, 1)
         errs = my_dll.train_mlp(model, ctypes.c_double(alpha), iter, nb_err, train_input_data_pointer, len(X),
                                 len(X[0]),
                                 train_output_data_pointer, len(Y), len(Y[0]))
+
+        array_from_ptr = np.frombuffer(ctypes.cast(errs, ctypes.POINTER(ctypes.c_double * nb_err)).contents,
+                                       dtype=np.float64)
+
+        plt.plot(range(0, nb_err), array_from_ptr)
+        plt.show()
 
         # Affichage des resultats
         inputs = []
@@ -280,10 +290,10 @@ else:
         backX = np.array(backX)
         backY = np.array(backY)
 
-        plt.scatter(backX[backY >= 0.5][:, 0], backX[backY >= 0.5][:, 1], color='lightcoral')
-        plt.scatter(backX[backY < 0.5][:, 0], backX[backY < 0.5][:, 1], color='lightblue')
-        plt.scatter(inputs[outputs >= 0.5][:, 0], inputs[outputs >= 0.5][:, 1], color='red')
-        plt.scatter(inputs[outputs < 0.5][:, 0], inputs[outputs < 0.5][:, 1], color='blue')
+        plt.scatter(backX[backY >= 0.0][:, 0], backX[backY >= 0.0][:, 1], color='lightcoral')
+        plt.scatter(backX[backY < 0.0][:, 0], backX[backY < 0.0][:, 1], color='lightblue')
+        plt.scatter(inputs[outputs >= 0.0][:, 0], inputs[outputs >= 0.0][:, 1], color='red')
+        plt.scatter(inputs[outputs < 0.0][:, 0], inputs[outputs < 0.0][:, 1], color='blue')
         plt.show()
         plt.clf()
 
@@ -348,7 +358,7 @@ else:
 
     elif exemple_utilise == 3:
         # MultiLinear
-        model = my_dll.create_mlp(5, 3, 1)
+        model = my_dll.create_mlp(6, 3, 1)
         X = np.random.random((300, 2)) * 2.0 - 1.0
         Y = np.array([[-1.0] if abs(p[0] % 0.5) <= 0.25 and abs(p[1] % 0.5) > 0.25 else [0.0] if abs(
                 p[0] % 0.5) > 0.25 and abs(p[1] % 0.5) <= 0.25 else [1.0] for p in X])
@@ -358,7 +368,7 @@ else:
 
         nb_err = 1000
         alpha = 0.01
-        iter = 1000000
+        iter = 10000000
         errs = my_dll.train_mlp(model, ctypes.c_double(alpha), iter, nb_err, train_input_data_pointer, len(X),
                                 len(X[0]), train_output_data_pointer, len(Y), len(Y[0]))
 
@@ -398,3 +408,35 @@ else:
 
         plt.plot(range(0, nb_err), array_from_ptr)
         plt.show()
+else:
+    #RBF
+    my_dll.create_rbf.restype = ctypes.POINTER(ctypes.c_void_p)
+    my_dll.predict_rbf.restype = ctypes.c_double
+
+    X = np.random.random((200, 2)) * 2.0 - 1.0
+    Y = np.array([-1.0 if p[0] > random.random()/10.0 else 1.0 for p in X])
+    train_input_data_pointer = X.ctypes.data_as(ctypes.POINTER(ctypes.c_double))
+    train_output_data_pointer = Y.ctypes.data_as(ctypes.POINTER(ctypes.c_double))
+
+    model = my_dll.create_rbf(200, ctypes.c_double(100), train_input_data_pointer, len(X),
+                           len(X[0]), train_output_data_pointer, len(Y))
+
+    backX = []
+    backY = []
+    for x in np.arange(-1, 1, 0.01):
+        for y in np.arange(-1, 1, 0.01):
+            data = np.array([x, y], dtype=np.float64)
+            predict_data_pointer = data.ctypes.data_as(ctypes.POINTER(ctypes.c_double))
+            result = my_dll.predict_rbf(model, predict_data_pointer, 2)
+            backX.append([x, y])
+            backY.append(result)
+    # Convertir les tableaux en numpy arrays pour une utilisation facile avec Matplotlib
+    backX = np.array(backX)
+    backY = np.array(backY)
+
+    plt.scatter(backX[backY >= 0.0][:, 0], backX[backY >= 0.0][:, 1], color='lightcoral')
+    plt.scatter(backX[backY < 0.0][:, 0], backX[backY < 0.0][:, 1], color='lightblue')
+    plt.scatter(X[Y >= 0.0][:, 0], X[Y >= 0.0][:, 1], color='red')
+    plt.scatter(X[Y < 0.0][:, 0], X[Y < 0.0][:, 1], color='blue')
+    plt.show()
+    plt.clf()
