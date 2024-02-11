@@ -5,8 +5,8 @@ struct LinearModel {
 }
 
 impl LinearModel {
-    fn new() -> Self {
-        LinearModel { poids : vec![0.0;3] }
+    fn new(nb_entree : usize) -> Self {
+        LinearModel { poids : vec![0.0;nb_entree+1] }
     }
 
 	fn initPoids(&mut self) {
@@ -15,9 +15,21 @@ impl LinearModel {
 		}
 	}
 
-    fn predict(&self, x1: f64, x2: f64) -> f64 {
-        self.poids[0] + self.poids[1] * x1 + self.poids[2] * x2
-    }
+    fn predict(&self, x : Vec<f64>) -> f64 {
+		let mut output = self.poids[0];
+		if(x.len() > 1)
+		{
+			for i in 0..x.len() {
+				output += self.poids[i+1] * x[i];
+			}	
+		}
+		else {
+			for i in 1..self.poids.len() {
+				output += self.poids[i] * x[0].powf(i as f64);
+			}	
+		}
+		output
+	}
 
     // Fonction d'entraînement pour le modèle linéaire
     fn train(&mut self, all_inputs: Vec<Vec<f64>>, all_expected_outputs: Vec<f64>, alpha: f64, max_iter: usize, nb_errors : usize) -> Vec<f64> {
@@ -30,19 +42,13 @@ impl LinearModel {
             let k = rand::thread_rng().gen_range(0..all_inputs.len());
             let inputs_k = &all_inputs[k];
             let Yk = &all_expected_outputs[k];
-			
-			let mut Xk = vec![1.0;3];
-			Xk[1] = inputs_k[0];
-			Xk[2] = inputs_k[1];
 
-			let yPredict = self.predict(Xk[1], Xk[2]);
+			let yPredict = self.predict(inputs_k.to_vec());
 
-			//let gXk = if yPredict >= 0.0 { 1.0 } else { -1.0 };
-
-			// Mettez à jour les poids W
 			self.poids[0] += alpha * (Yk - yPredict);
-			self.poids[1] += alpha * (Yk - yPredict) * Xk[1];
-			self.poids[2] += alpha * (Yk - yPredict) * Xk[2];
+			for i in 0..inputs_k.len() {
+				self.poids[i+1] += alpha * (Yk - yPredict) * inputs_k[i];
+			}
 		}
 		errors
     }
@@ -50,7 +56,7 @@ impl LinearModel {
 	fn calculate_error(&mut self, all_inputs: &Vec<Vec<f64>>, all_expected_outputs: &Vec<f64>) -> f64{
 		let mut total_loss = 0.0;
 		for iter in 0..all_inputs.len() {
-			let result = self.predict(all_inputs[iter][0],all_inputs[iter][1]);
+			let result = self.predict(all_inputs[iter].to_vec());
 			total_loss += (all_expected_outputs[iter] - result).abs();
 		}
 		total_loss/(all_inputs.len() as f64)
@@ -58,8 +64,8 @@ impl LinearModel {
 }
 
 #[no_mangle]
-pub extern "C" fn create_lm(nb_entree: i32, nb_couche: i32, nb_sortie: i32) -> *mut LinearModel {
-	let mut LinearModel = Box::new(LinearModel::new());
+pub extern "C" fn create_lm(nb_entree: i32) -> *mut LinearModel {
+	let mut LinearModel = Box::new(LinearModel::new(nb_entree as usize));
 	LinearModel.initPoids();
     Box::leak(LinearModel)
 }
@@ -68,7 +74,7 @@ pub extern "C" fn create_lm(nb_entree: i32, nb_couche: i32, nb_sortie: i32) -> *
 pub extern "C" fn predict_lm(ptr: *mut LinearModel, input: *const f64, length: i32) -> f64 {
     let model = unsafe { &mut *ptr };
     let slice = unsafe { std::slice::from_raw_parts(input, length as usize) };
-    let result = model.predict(slice[0], slice[1]);
+    let result = model.predict(slice.to_vec());
 	result
 }
 
@@ -163,11 +169,11 @@ impl MLP {
             let expected_outputs = &all_expected_outputs[k];
 
             self.propagate(inputs_k.to_vec(), is_classification);
-			/*
-			if((self.entrees[self.n_couche-1][0] - expected_outputs[0]).abs() < 0.5){
+
+			if((self.entrees[self.n_couche-1][0] - expected_outputs[0]).abs() < 0.01){
 				continue;
 			}
-			*/
+			
             for j in 0..self.n_sortie {
                 self.deltas[self.n_couche - 1][j] = self.entrees[self.n_couche - 1][j] - expected_outputs[j];
 
@@ -259,4 +265,96 @@ pub extern "C" fn train_mlp(ptr: *mut MLP, alpha : f64, max_iter : i32, nb_error
     }
 
     model.train(input_data, output_data, true, alpha, max_iter as usize, nb_errors as usize).leak().as_mut_ptr()
+}
+
+struct RBF {
+    poids: Vec<f64>,
+	exempleX : Vec<Vec<f64>>,
+	exempleY : Vec<f64>,
+	gammma : f64
+}
+
+impl RBF {
+    fn new(nb_poids : usize, gam : f64, x : Vec<Vec<f64>>, y : Vec<f64>) -> Self {
+        LinearModel { poids : vec![0.0;nb_poids], exempleX : x, exempleY : y, gammma : gam }
+    }
+
+	fn initPoids(&mut self, ) {
+		for j in 0..self.poids.len() {
+			self.poids[j] = rand::thread_rng().gen_range(-1.0..1.0);
+		}
+	}
+
+    fn predict(&self, x1: f64, x2: f64) -> f64 {
+		let mut output = 0.0;
+        self.poids[0] + self.poids[1] * x1 + self.poids[2] * x2
+    }
+
+    // Fonction d'entraînement pour le modèle linéaire
+    fn train(&mut self, all_inputs: Vec<Vec<f64>>, all_expected_outputs: Vec<f64>, alpha: f64, max_iter: usize, nb_errors : usize) -> Vec<f64> {
+		let err_mod = (max_iter/nb_errors) as usize;
+		let mut errors: Vec<f64> = Vec::new();
+		for iter in 0..max_iter {
+			if(iter % err_mod == 0) {
+				errors.push(self.calculate_error(&all_inputs, &all_expected_outputs));
+			}
+            let k = rand::thread_rng().gen_range(0..all_inputs.len());
+            let inputs_k = &all_inputs[k];
+            let Yk = &all_expected_outputs[k];
+			
+			let mut Xk = vec![1.0;3];
+			Xk[1] = inputs_k[0];
+			Xk[2] = inputs_k[1];
+
+			let yPredict = self.predict(Xk[1], Xk[2]);
+
+			//let gXk = if yPredict >= 0.0 { 1.0 } else { -1.0 };
+
+			// Mettez à jour les poids W
+			self.poids[0] += alpha * (Yk - yPredict);
+			self.poids[1] += alpha * (Yk - yPredict) * Xk[1];
+			self.poids[2] += alpha * (Yk - yPredict) * Xk[2];
+		}
+		errors
+    }
+	
+	fn calculate_error(&mut self, all_inputs: &Vec<Vec<f64>>, all_expected_outputs: &Vec<f64>) -> f64{
+		let mut total_loss = 0.0;
+		for iter in 0..all_inputs.len() {
+			let result = self.predict(all_inputs[iter][0],all_inputs[iter][1]);
+			total_loss += (all_expected_outputs[iter] - result).abs();
+		}
+		total_loss/(all_inputs.len() as f64)
+	}
+}
+
+#[no_mangle]
+pub extern "C" fn create_lm(nb_entree: i32, nb_couche: i32, nb_sortie: i32) -> *mut LinearModel {
+	let mut LinearModel = Box::new(LinearModel::new());
+	LinearModel.initPoids();
+    Box::leak(LinearModel)
+}
+
+#[no_mangle]
+pub extern "C" fn predict_lm(ptr: *mut LinearModel, input: *const f64, length: i32) -> f64 {
+    let model = unsafe { &mut *ptr };
+    let slice = unsafe { std::slice::from_raw_parts(input, length as usize) };
+    let result = model.predict(slice[0], slice[1]);
+	result
+}
+
+#[no_mangle]
+pub extern "C" fn train_lm(ptr: *mut LinearModel, alpha : f64, max_iter : i32,  nb_errors : i32, input : *const f64, rowsIn: i32, colsIn: i32, output: *const f64, rowsOut: i32) -> *mut f64 {
+    let model = unsafe { &mut *ptr };
+    let sliceIn = unsafe { std::slice::from_raw_parts(input, (rowsIn * colsIn) as usize) };
+    let mut input_data = vec![vec![0.0; colsIn as usize]; rowsIn as usize];
+    for i in 0..rowsIn {
+        let start = (i * colsIn) as usize;
+        let end = ((i + 1) * colsIn) as usize;
+        let row = &sliceIn[start..end];
+        input_data[i as usize] = row.to_vec();
+    }
+
+	let output_data = unsafe { std::slice::from_raw_parts(output, rowsOut as usize) };
+    (model.train(input_data, output_data.to_vec(), alpha, max_iter as usize, nb_errors as usize)).leak().as_mut_ptr()
 }
